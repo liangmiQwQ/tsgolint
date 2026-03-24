@@ -43,6 +43,7 @@ type TypeErrors struct {
 
 func RunLinter(
 	logLevel utils.LogLevel,
+	currentDirectory string,
 	workload Workload,
 	workers int,
 	fs vfs.FS,
@@ -119,12 +120,33 @@ func RunLinter(
 		idx++
 	}
 
-	// Files which are unmatched to any tsconfig should be skippe
-	// Make sure to follow tsconfig's include/exclude settings
-	if len(workload.UnmatchedFiles) > 0 && logLevel == utils.LogLevelDebug {
-		log.Printf("Skipping %d files not included in any tsconfig:", len(workload.UnmatchedFiles))
+	// Only create inferred program if there is no tsconfig in the project
+	if len(workload.Programs) == 0 {
+		host := utils.NewCachedFSCompilerHost(currentDirectory, fs, bundled.LibPath(), nil, nil)
+		program, diagnostics, err := utils.CreateInferredProjectProgram(false, fs, currentDirectory, host, workload.UnmatchedFiles)
+
+		if err != nil {
+			return err
+		}
+
+		if len(diagnostics) > 0 {
+			for _, d := range diagnostics {
+				onInternalDiagnostic(d)
+			}
+		}
+
+		files := make([]*ast.SourceFile, 0, len(workload.UnmatchedFiles))
 		for _, f := range workload.UnmatchedFiles {
-			log.Printf("  - %s", f)
+			sf := program.GetSourceFile(f)
+			if sf == nil {
+				panic(fmt.Sprintf("Expected file '%s' to be in inferred program", f))
+			}
+			files = append(files, sf)
+		}
+
+		err = RunLinterOnProgram(logLevel, program, files, workers, getRulesForFile, onRuleDiagnostic, onInternalDiagnostic, fixState, typeErrors)
+		if err != nil {
+			return err
 		}
 	}
 
