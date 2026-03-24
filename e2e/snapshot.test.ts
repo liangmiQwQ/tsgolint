@@ -387,6 +387,25 @@ describe('TSGoLint E2E Snapshot Tests', () => {
     expect(diagnostics).toMatchSnapshot();
   });
 
+  it('should run type check inside a project without tsconfig', async () => {
+    const testFiles = await getTestFiles('without-tsconfig');
+    expect(testFiles.length).toBeGreaterThan(0);
+
+    const config = generateConfig(testFiles, ['no-unsafe-argument']);
+
+    const env = { ...process.env, GOMAXPROCS: '1' };
+
+    const output = execFileSync(TSGOLINT_BIN, ['headless'], {
+      input: config,
+      env,
+    });
+
+    let diagnostics = parseHeadlessOutput(output);
+    diagnostics = sortDiagnostics(diagnostics);
+
+    expect(diagnostics).toMatchSnapshot();
+  });
+
   it('should work with the old version of the headless payload', async () => {
     function generateV1HeadlessPayload(
       files: string[],

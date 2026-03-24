@@ -4829,6 +4829,37 @@ exports[`TSGoLint E2E Snapshot Tests > should report type errors 1`] = `
 ]
 `;
 
+exports[`TSGoLint E2E Snapshot Tests > should run type check inside a project without tsconfig 1`] = `
+[
+  {
+    "file_path": "fixtures/without-tsconfig/src/index.ts",
+    "kind": 0,
+    "message": {
+      "description": "Unsafe argument of type any assigned to a parameter of type string.",
+      "id": "unsafeArgument",
+    },
+    "range": {
+      "end": 45,
+      "pos": 36,
+    },
+    "rule": "no-unsafe-argument",
+  },
+  {
+    "file_path": "fixtures/without-tsconfig/test.ts",
+    "kind": 0,
+    "message": {
+      "description": "Unsafe argument of type any assigned to a parameter of type string.",
+      "id": "unsafeArgument",
+    },
+    "range": {
+      "end": 45,
+      "pos": 36,
+    },
+    "rule": "no-unsafe-argument",
+  },
+]
+`;
+
 exports[`TSGoLint E2E Snapshot Tests > should still report lint rule diagnostics when OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS env var is true 1`] = `
 [
   {
